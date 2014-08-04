@@ -1,4 +1,4 @@
 vvt-cli
 =======
 
-vvt.nu client
+Client to receive and paste from terminal.
