@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -45,5 +46,10 @@ func decodeJson(s []byte) Paste {
 }
 
 func main() {
-	getPaste("1jmvvuwy")
+	getSlug := flag.String("get", "get", "get")
+	flag.Parse()
+
+	if getSlug != nil {
+		fmt.Printf(getPaste(*getSlug))
+	}
 }
