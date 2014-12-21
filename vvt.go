@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -11,9 +12,11 @@ import (
 
 type Paste struct {
 	Code      string `json:"code"`
-	Encrypted string `json:"encrypted"` // Should be boolean, API gives wrong output atm.
+	Encrypted string `json:"encrypted"`
 	Language  string `json:"language"`
-	Slug      string `json:"slug"`
+	DeleteAt  string `json:"delete_at"`
+	CreatedAt string `json:"created_at"`
+	Slug      string `json:"slug`
 }
 
 func getPaste(slug string) string {
@@ -35,6 +38,29 @@ func getPaste(slug string) string {
 	return paste.Code
 }
 
+func postPaste(content string) Paste {
+	data := Paste{content, "0", "", "", "", ""}
+	body, err := json.Marshal(data)
+
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := http.Post("https://vvt.nu/save.json", "application/json", bytes.NewReader(body))
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	body, err = ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		panic(err)
+	}
+
+	paste := decodeJson(body)
+	return paste
+}
+
 func decodeJson(s []byte) Paste {
 	var paste Paste
 
@@ -47,9 +73,21 @@ func decodeJson(s []byte) Paste {
 
 func main() {
 	getSlug := flag.String("get", "get", "get")
+	args := flag.Args()
 	flag.Parse()
 
-	if getSlug != nil {
-		fmt.Printf(getPaste(*getSlug))
+	if len(args) > 0 {
+		if getSlug != nil {
+			fmt.Printf(getPaste(*getSlug))
+		}
+	} else {
+		bytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			panic(err)
+		}
+		content := string(bytes)
+		paste := postPaste(content)
+		fmt.Printf("https://vvt.nu/" + paste.Slug + "\n")
 	}
+
 }
