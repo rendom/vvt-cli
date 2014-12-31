@@ -8,11 +8,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 type Paste struct {
+	Id        int    `json:"id"`
 	Code      string `json:"code"`
-	Encrypted string `json:"encrypted"`
+	Encrypted int    `json:"encrypted"`
 	Language  string `json:"language"`
 	DeleteAt  string `json:"delete_at"`
 	CreatedAt string `json:"created_at"`
@@ -30,7 +33,6 @@ func getPaste(slug string) string {
 	defer result.Body.Close()
 
 	body, err := ioutil.ReadAll(result.Body)
-
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +41,7 @@ func getPaste(slug string) string {
 }
 
 func postPaste(content string) Paste {
-	data := Paste{content, "0", "", "", "", ""}
+	data := Paste{0, content, 0, "", "", "", ""}
 	body, err := json.Marshal(data)
 
 	if err != nil {
@@ -65,6 +67,7 @@ func decodeJson(s []byte) Paste {
 	var paste Paste
 
 	if err := json.Unmarshal(s, &paste); err != nil {
+		panic(err)
 		fmt.Printf("Hmm.. problem")
 		os.Exit(1)
 	}
@@ -72,22 +75,41 @@ func decodeJson(s []byte) Paste {
 }
 
 func main() {
-	getSlug := flag.String("get", "get", "get")
-	args := flag.Args()
+	outputFile := flag.String("o", "", "Output file (defaul is stdout)")
+	//encryptionKey := flag.String("p", "", "Passphrase to encrypt or decrypt paste")
 	flag.Parse()
 
-	if len(args) > 0 {
-		if getSlug != nil {
-			fmt.Printf(getPaste(*getSlug))
-		}
-	} else {
-		bytes, err := ioutil.ReadAll(os.Stdin)
-		if err != nil {
-			panic(err)
-		}
-		content := string(bytes)
-		paste := postPaste(content)
-		fmt.Printf("https://vvt.nu/" + paste.Slug + "\n")
-	}
+	args := flag.Args()
+	switch len(args) {
+	case 0:
+		if !terminal.IsTerminal(0) {
+			fmt.Println("foo")
+			bytes, err := ioutil.ReadAll(os.Stdin)
+			if err != nil {
+				panic(err)
+			}
 
+			paste := postPaste(string(bytes))
+			fmt.Printf("https://vvt.nu/" + paste.Slug + "\n")
+		} else {
+			fmt.Println("No piped data")
+			flag.Usage()
+			return
+		}
+	case 1:
+		content := getPaste(args[0])
+		if *outputFile != "" {
+			file, err := os.Create(*outputFile)
+			if err != nil {
+				panic(err)
+			}
+			file.WriteString(content)
+			fmt.Println("File created")
+		} else {
+			fmt.Print(content)
+		}
+	default:
+		flag.Usage()
+		os.Exit(-1)
+	}
 }
