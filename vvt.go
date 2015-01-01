@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	"code.google.com/p/gopass"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -37,6 +38,20 @@ func getPaste(slug string) string {
 		panic(err)
 	}
 	paste := decodeJson(body)
+
+	if paste.Encrypted == 1 {
+		password, err := gopass.GetPass("This paste is encrypted, enter password: ")
+		if err != nil {
+			panic(err)
+		}
+
+		content, err := Decrypt(paste.Code, password)
+		if err != nil {
+			panic(err)
+		}
+		return content
+	}
+
 	return paste.Code
 }
 
@@ -76,14 +91,12 @@ func decodeJson(s []byte) Paste {
 
 func main() {
 	outputFile := flag.String("o", "", "Output file (defaul is stdout)")
-	//encryptionKey := flag.String("p", "", "Passphrase to encrypt or decrypt paste")
 	flag.Parse()
 
 	args := flag.Args()
 	switch len(args) {
 	case 0:
 		if !terminal.IsTerminal(0) {
-			fmt.Println("foo")
 			bytes, err := ioutil.ReadAll(os.Stdin)
 			if err != nil {
 				panic(err)
@@ -104,7 +117,7 @@ func main() {
 				panic(err)
 			}
 			file.WriteString(content)
-			fmt.Println("File created")
+			fmt.Println(*outputFile + " created")
 		} else {
 			fmt.Print(content)
 		}
