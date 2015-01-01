@@ -21,3 +21,4 @@ vvt -o=outputfile.txt iggqrfj
 
 ####Todo
 * Post encrypted paste
+* Crossplatform clipboard support
