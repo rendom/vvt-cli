@@ -23,7 +23,9 @@ type Paste struct {
 	Slug      string `json:"slug`
 }
 
-func getPaste(slug string) string {
+// Get paste from api by passing slug
+// Will prompt password if paste is encrypted
+func GetPaste(slug string) string {
 	url := "https://vvt.nu/" + slug + ".json"
 	result, err := http.Get(url)
 
@@ -37,8 +39,9 @@ func getPaste(slug string) string {
 	if err != nil {
 		panic(err)
 	}
-	paste := decodeJson(body)
+	paste := decodeJSON(body)
 
+	// Move this logix out of GetPaste..
 	if paste.Encrypted == 1 {
 		password, err := gopass.GetPass("This paste is encrypted, enter password: ")
 		if err != nil {
@@ -55,8 +58,9 @@ func getPaste(slug string) string {
 	return paste.Code
 }
 
-func postPaste(content string) Paste {
-	data := Paste{0, content, 0, "", "", "", ""}
+// Post paste trought api requires string and retunrs Paste object
+func PostPaste(content string) Paste {
+	data := Paste{Code: content, Encrypted: 0}
 	body, err := json.Marshal(data)
 
 	if err != nil {
@@ -74,11 +78,12 @@ func postPaste(content string) Paste {
 		panic(err)
 	}
 
-	paste := decodeJson(body)
+	paste := decodeJSON(body)
 	return paste
 }
 
-func decodeJson(s []byte) Paste {
+// decode vvt's json response to struct
+func decodeJSON(s []byte) Paste {
 	var paste Paste
 
 	if err := json.Unmarshal(s, &paste); err != nil {
@@ -101,8 +106,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-
-			paste := postPaste(string(bytes))
+			paste := PostPaste(string(bytes))
 			fmt.Printf("https://vvt.nu/" + paste.Slug + "\n")
 		} else {
 			fmt.Println("No piped data")
@@ -110,7 +114,7 @@ func main() {
 			return
 		}
 	case 1:
-		content := getPaste(args[0])
+		content := GetPaste(args[0])
 		if *outputFile != "" {
 			file, err := os.Create(*outputFile)
 			if err != nil {

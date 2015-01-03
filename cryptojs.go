@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 )
 
+// Cryptojs object
 type Crypto struct {
 	Iv   string `json:"iv"`
 	Salt string `json:"s"`
