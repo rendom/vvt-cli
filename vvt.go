@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"os"
 
-	"code.google.com/p/gopass"
-	"golang.org/x/crypto/ssh/terminal"
+	"github.com/rendom/vvt-cli/Godeps/_workspace/src/code.google.com/p/gopass"
+	"github.com/rendom/vvt-cli/Godeps/_workspace/src/golang.org/x/crypto/ssh/terminal"
 )
 
 type Paste struct {
