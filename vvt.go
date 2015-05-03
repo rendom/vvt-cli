@@ -14,13 +14,10 @@ import (
 )
 
 type Paste struct {
-	Id        int    `json:"id"`
 	Code      string `json:"code"`
-	Encrypted int    `json:"encrypted"`
+	Encrypted bool   `json:"encrypted"`
 	Language  string `json:"language"`
-	DeleteAt  string `json:"delete_at"`
-	CreatedAt string `json:"created_at"`
-	Slug      string `json:"slug`
+	Slug      string `json:"slug"`
 }
 
 // Get paste from api by passing slug
@@ -42,7 +39,7 @@ func GetPaste(slug string) string {
 	paste := decodeJSON(body)
 
 	// Move this logix out of GetPaste..
-	if paste.Encrypted == 1 {
+	if paste.Encrypted == true {
 		password, err := gopass.GetPass("This paste is encrypted, enter password: ")
 		if err != nil {
 			panic(err)
@@ -60,7 +57,7 @@ func GetPaste(slug string) string {
 
 // Post paste trought api requires string and retunrs Paste object
 func PostPaste(content string) Paste {
-	data := Paste{Code: content, Encrypted: 0}
+	data := Paste{Code: content, Encrypted: true}
 	body, err := json.Marshal(data)
 
 	if err != nil {
