@@ -57,7 +57,7 @@ func GetPaste(slug string) string {
 
 // Post paste trought api requires string and retunrs Paste object
 func PostPaste(content string) Paste {
-	data := Paste{Code: content, Encrypted: true}
+	data := Paste{Code: content, Encrypted: false}
 	body, err := json.Marshal(data)
 
 	if err != nil {
