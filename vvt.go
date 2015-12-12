@@ -9,8 +9,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/rendom/vvt-cli/Godeps/_workspace/src/code.google.com/p/gopass"
-	"github.com/rendom/vvt-cli/Godeps/_workspace/src/golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 type Paste struct {
@@ -40,12 +39,15 @@ func GetPaste(slug string) string {
 
 	// Move this logix out of GetPaste..
 	if paste.Encrypted == true {
-		password, err := gopass.GetPass("This paste is encrypted, enter password: ")
+		fmt.Printf("This paste is encrypted, enter password: ")
+		password, err := terminal.ReadPassword(0)
 		if err != nil {
 			panic(err)
 		}
 
-		content, err := Decrypt(paste.Code, password)
+		fmt.Print("\n")
+
+		content, err := Decrypt(paste.Code, string(password))
 		if err != nil {
 			panic(err)
 		}
@@ -120,7 +122,7 @@ func main() {
 			file.WriteString(content)
 			fmt.Println(*outputFile + " created")
 		} else {
-			fmt.Print(content)
+			fmt.Println(content)
 		}
 	default:
 		flag.Usage()
